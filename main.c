@@ -6,7 +6,7 @@
 #include <openssl/rand.h>
 #include <openssl/err.h>
 
-#define VERSION     "alpha 1"
+#define VERSION     "alpha 2"
 #define SALT_SIZE   8
 #define KEY_SIZE    32
 #define IV_SIZE     16
@@ -83,6 +83,7 @@ void usage(void)
         printf("Examples:\n");
         printf("  aesc -e input.c output.c your_password\n");
         printf("  aesc -d input.c output.c your_password\n");
+	printf("\n");
 }
 
 void handle_errors(void)
@@ -95,7 +96,7 @@ void derive_key(const char *passwd, const unsigned char *salt, unsigned char *ke
 {
         if (!PKCS5_PBKDF2_HMAC(passwd, strlen(passwd), salt, SALT_SIZE,
                               ITERATIONS, EVP_sha256(), KEY_SIZE, key)) {
-                fprintf(stderr, "aesc: key derivation failed\n");
+                fprintf(stderr, "\naesc: key derivation failed\n");
                 handle_errors();
         }
 }
@@ -274,11 +275,11 @@ void decrypt(const char *input_file, const char *output_file, const char *passwd
 
         while ((inlen = fread(inbuf, 1, sizeof(inbuf), fin)) > 0) {
                 if (EVP_DecryptUpdate(ctx, outbuf, &outlen, inbuf, inlen) != 1) {
-                        fprintf(stderr, "aesc: decryption failed\n");
+                        fprintf(stderr, "\naesc: decryption failed\n");
                         handle_errors();
                 }
                 if (fwrite(outbuf, 1, outlen, fout) != (size_t)outlen) {
-                        fprintf(stderr, "aesc: failed to write decrypted data\n");
+                        fprintf(stderr, "\naesc: failed to write decrypted data\n");
                         handle_errors();
                 }
 
@@ -287,7 +288,7 @@ void decrypt(const char *input_file, const char *output_file, const char *passwd
         }
 
         if (EVP_DecryptFinal_ex(ctx, outbuf, &outlen) != 1) {
-                fprintf(stderr, "aesc: wrong password or corrupted file\n");
+                fprintf(stderr, "\naesc: wrong password or corrupted file\n");
                 fclose(fin);
                 fclose(fout);
                 remove(output_file);
@@ -295,7 +296,7 @@ void decrypt(const char *input_file, const char *output_file, const char *passwd
         }
 
         if (fwrite(outbuf, 1, outlen, fout) != (size_t)outlen) {
-                fprintf(stderr, "aesc: failed to write final decrypted data\n");
+                fprintf(stderr, "\naesc: failed to write final decrypted data\n");
                 handle_errors();
         }
 
