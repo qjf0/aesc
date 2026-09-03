@@ -6,7 +6,6 @@
  *
  * SPDX-License-Identifier: MIT
  */
-
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -51,7 +50,7 @@ struct config {
 	int mode;		/* 0=none, 1=encrypt, 2=decrypt */
 	int help;
 	int version;
-	int show_progress;
+	int quiet;		/* 1 = suppress normal output */
 };
 
 static struct config config = {
@@ -60,7 +59,7 @@ static struct config config = {
 	.mode		= 0,
 	.help		= 0,
 	.version	= 0,
-	.show_progress	= 1,
+	.quiet		= 0,
 };
 
 #define MODE_ENCRYPT	1
@@ -143,12 +142,14 @@ int main(int argc, char *argv[])
 		ret = encrypt();
 		if (ret != ERR_NONE)
 			handle_error(ret);
-		printf("\naesc: %s -> %s\n", config.input_file, config.output_file);
+		if (!config.quiet)
+			printf("\naesc: %s -> %s\n", config.input_file, config.output_file);
 	} else {
 		ret = decrypt();
 		if (ret != ERR_NONE)
 			handle_error(ret);
-		printf("\naesc: %s -> %s\n", config.input_file, config.output_file);
+		if (!config.quiet)
+			printf("\naesc: %s -> %s\n", config.input_file, config.output_file);
 	}
 
 	/* Cleanup */
@@ -167,7 +168,7 @@ static void parse_arg(int argc, char *argv[])
 		{"version",    no_argument,       0, 'v'},
 		{"encrypt",    no_argument,       0, 'e'},
 		{"decrypt",    no_argument,       0, 'd'},
-		{"progress",   no_argument,       0, 'p'},
+		{"quiet",      no_argument,       0, 'q'},
 		{"if",         required_argument, 0, 'i'},
 		{"of",         required_argument, 0, 'o'},
 		{"bs",         required_argument, 0, 'b'},
@@ -177,7 +178,7 @@ static void parse_arg(int argc, char *argv[])
 	};
 
 	/* Iterate through all options */
-	while ((opt = getopt_long(argc, argv, "hvedp i:o:b:I:P:",
+	while ((opt = getopt_long(argc, argv, "hvedq i:o:b:I:P:",
 				  long_options, &option_index)) != -1) {
 		switch (opt) {
 		case 'h':
@@ -200,8 +201,8 @@ static void parse_arg(int argc, char *argv[])
 			}
 			config.mode = MODE_DECRYPT;
 			break;
-		case 'p':
-			config.show_progress = 1;
+		case 'q':
+			config.quiet = 1;
 			break;
 		case 'i':
 			config.input_file = optarg;
@@ -259,7 +260,7 @@ static void usage(void)
 	printf("  -d, --decrypt              Decrypt mode\n");
 	printf("  -h, --help                 Display this help and exit\n");
 	printf("  -v, --version              Output version information and exit\n");
-	printf("  -p, --progress             Show progress bar\n");
+	printf("  -q, --quiet                Suppress all normal output (errors still printed)\n");
 	printf("  -i, --if=FILE              Input file (required)\n");
 	printf("  -o, --of=FILE              Output file (required)\n");
 	printf("  -P, --pass=PASSWORD        Password (required)\n");
@@ -268,12 +269,13 @@ static void usage(void)
 	printf("\n");
 	printf("Examples:\n");
 	printf("  aesc -e --if input.txt --of output.enc --pass mysecret\n");
-	printf("  aesc -d --if output.enc --of decrypted.txt --pass mysecret --progress\n");
+	printf("  aesc -d --if output.enc --of decrypted.txt --pass mysecret --quiet\n");
 }
 
 /* Print error, clean up and exit. Does not return. */
 static void handle_error(int err)
 {
+	printf("\n");
 	/* Print appropriate error message */
 	switch (err) {
 	case ERR_OPEN_INPUT:
@@ -460,7 +462,7 @@ static int encrypt(void)
 			return ERR_WRITE_DATA;
 
 		rt.processed += inlen;
-		if (config.show_progress)
+		if (!config.quiet)
 			progress(rt.processed, rt.total_size);
 	}
 
@@ -491,7 +493,7 @@ static int decrypt(void)
 			return ERR_WRITE_DATA;
 
 		rt.processed += inlen;
-		if (config.show_progress)
+		if (!config.quiet)
 			progress(rt.processed - (SALT_SIZE + IV_SIZE),
 				 rt.total_size);
 	}
