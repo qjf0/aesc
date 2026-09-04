@@ -6,6 +6,7 @@
  *
  * SPDX-License-Identifier: MIT
  */
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -16,7 +17,7 @@
 #include <openssl/rand.h>
 #include <openssl/err.h>
 
-#define VERSION		"alpha 3"
+#define VERSION		"alpha 5"
 #define SALT_SIZE	32
 #define KEY_SIZE	32
 #define IV_SIZE		16
@@ -84,6 +85,7 @@ static struct runtime rt = {0};
 
 /* Function prototypes */
 static void parse_arg(int argc, char *argv[]);
+static void version(void);
 static int init(void);
 static int derive_key(void);
 static int encrypt(void);
@@ -93,7 +95,6 @@ static void handle_error(int err) __attribute__((noreturn));
 static void usage(void);
 static void progress(long long current, long long total);
 
-/* Main */
 int main(int argc, char *argv[])
 {
 	int ret;
@@ -112,8 +113,7 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 	if (config.version) {
-		printf("aesc " VERSION "\n");
-		printf("Built with OpenSSL %s\n", OPENSSL_VERSION_TEXT);
+		version();
 		quit();
 		return 0;
 	}
@@ -545,4 +545,29 @@ static void quit(void)
 	/* OpenSSL cleanup */
 	EVP_cleanup();
 	ERR_free_strings();
+}
+
+/* color macros (24-bit RGB) */
+#define C_RESET                 "\033[0m"
+#define C_DEFAULT               "\033[38;2;255;255;255;48;2;0;0;0m"
+#define C_HIWHITE               "\033[38;2;255;255;255;48;2;0;0;0m"
+#define C_BLUE_FG               "\033[38;2;0;128;255;48;2;0;0;0m"
+#define C_BLUE_BG               "\033[38;2;0;128;255;48;2;0;80;200m"
+#define C_MAGENTA_FG            "\033[38;2;255;0;200;48;2;200;0;150m"
+
+void version(void)
+{
+        printf("\n");
+        printf("    " C_DEFAULT "  " C_HIWHITE "██████" C_DEFAULT "  " C_HIWHITE "██████" C_DEFAULT "  " C_HIWHITE "██████" C_DEFAULT "  " C_HIWHITE "██████" C_RESET "\n");
+        printf("    " C_BLUE_FG "█" C_BLUE_BG " " C_HIWHITE "███" C_BLUE_BG "▄ " C_HIWHITE "█" C_BLUE_FG "█" C_BLUE_BG " " C_HIWHITE "███" C_BLUE_BG "▄ " C_HIWHITE "█" C_BLUE_FG "█" C_BLUE_BG " " C_HIWHITE "██" C_BLUE_BG "▄▄▄" C_BLUE_FG "██" C_BLUE_BG " " C_HIWHITE "███" C_BLUE_BG "▄ " C_HIWHITE "█" C_RESET "\n");
+        printf("    " C_BLUE_FG "█" C_BLUE_BG " " C_HIWHITE "██████" C_BLUE_FG "█" C_BLUE_BG " " C_HIWHITE "████" C_BLUE_BG "▄█" C_BLUE_FG "█" C_BLUE_BG " " C_HIWHITE "██████" C_BLUE_FG "█" C_BLUE_BG " " C_HIWHITE "███" C_BLUE_BG "█▄█" C_RESET "\n");
+        printf("    " C_BLUE_FG "█" C_BLUE_BG " " C_HIWHITE "███" C_BLUE_BG "▄ " C_HIWHITE "█" C_BLUE_FG "█" C_BLUE_BG " " C_HIWHITE "███" C_BLUE_BG "█▀" C_HIWHITE "█" C_BLUE_FG "█" C_BLUE_BG "▄▄▄▄▄ " C_HIWHITE "█" C_BLUE_FG "█" C_BLUE_BG " " C_HIWHITE "███" C_BLUE_BG "█▀" C_HIWHITE "█" C_RESET "\n");
+        printf("    " C_MAGENTA_FG "█ " C_HIWHITE "███" C_MAGENTA_FG "█ " C_HIWHITE "█" C_MAGENTA_FG "█ " C_HIWHITE "██████" C_MAGENTA_FG "█ " C_HIWHITE "██████" C_MAGENTA_FG "█ " C_HIWHITE "██████" C_RESET "\n");
+        printf("    " C_MAGENTA_FG "█▄▄▄██ " C_HIWHITE "█" C_MAGENTA_FG "█▄▄▄▄▄▄██▄▄▄▄▄▄██▄▄▄▄▄▄█" C_RESET "\n");
+        printf("    " C_MAGENTA_FG "██████▄█████████████████████████" C_RESET "\n");
+	printf("\n");
+	printf("    aesc @" VERSION "\n");
+	printf("    Built with OpenSSL %s\n", OPENSSL_VERSION_TEXT);
+	printf("\n");
+ 
 }
